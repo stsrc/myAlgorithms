@@ -24,6 +24,9 @@ void deinit_node(struct node *ptr)
 }
 
 void add(struct node *root, int value) {
+	if (*root->element == value)
+		abort();
+
 	if (*root->element > value) {
 		if (!root->left) {
 			root->left = init_node(value, root);
@@ -142,28 +145,46 @@ int maxdeep(struct node *root) {
 	return deepleft > deepright? deepleft : deepright;
 }
 
-void printtree_level(struct node *root, int level, int max_deep) {
-	int spaces = 10;
-	for (int i = 0; i < spaces; i++)
-		printf(" ");
-	printf("%d", *root->element);
-	for (int i = 0; i < spaces; i++)
-		printf(" ");
+void getElementsAtDeep(struct node *root, int level, int currentLevel, int **output, size_t *count) {
+	if (level == currentLevel) {
+		*output = realloc(*output, (*count) + 1);
+		(*output)[*count] = *root->element;
+		(*count)++;
+		return;
+	} else {
+		if (root->left)
+			getElementsAtDeep(root->left, level, currentLevel + 1, output, count);
+		if (root->right)
+			getElementsAtDeep(root->right, level, currentLevel + 1, output, count);
+	}
 }
+
 void printtree(struct node *root)
 {
 	int maxDeep = maxdeep(root);
+	for (int i = maxDeep; i > 0; i--) {
+		int *output = NULL;
+		size_t count = 0;
+		getElementsAtDeep(root, i, 1, &output, &count);
+		for (size_t j = 0; j < count; j++) {
+			printf("%d", output[j]);
+			printf(" ");
+		}
+		printf("\n");
+		free(output);
+	}
 
 }
 
 int main(void)
 {
 	struct node *root = init_node(50, NULL);
-	add(root, 60);
-	add(root, 70);
-	add(root, 80);
-	assert(maxdeep(root) == 4);
-	add(root, 65);
-	assert(maxdeep(root) == 4);
+	add(root, 25);
+	add(root, 20);
+	add(root, 30);
+	add(root, 100);
+	add(root, 75);
+	add(root, 110);
+	printtree(root);
 	return 0;
 }
