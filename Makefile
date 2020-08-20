@@ -3,4 +3,4 @@ all: quicksort.c binaryTree.c
 	gcc -std=gnu99 -Wall quicksort.c -o quickSort
 
 clean:
-	rm quicksort
+	rm quickSort binaryTree
