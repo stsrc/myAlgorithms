@@ -62,7 +62,19 @@ struct node * lowest(struct node *root) {
 
 	return root;
 }
-#include <assert.h>
+
+void replaceNodeInParent(struct node *self, struct node *newValue) {
+	if (self->parent) {
+		if (self == self->parent->left) {
+			self->parent->left = newValue;
+		} else if (self == self->parent->right) {
+			self->parent->right = newValue;
+		}
+	}
+	if (newValue) {
+		newValue->parent = self->parent;
+	}
+}
 
 struct node * removeNode(struct node *root, int value) {
 	struct node *toRemove = search(root, value);
@@ -71,83 +83,21 @@ struct node * removeNode(struct node *root, int value) {
 		return newRoot;
 	}
 
-	if (toRemove->parent != NULL) {
-		if (!toRemove->left && !toRemove->right) {
-			if (toRemove->parent->left == toRemove) {
-				toRemove->parent->left = NULL;
-			} else {
-				toRemove->parent->right = NULL;
-			}
-			deinit_node(toRemove);
-		} else if (toRemove->left && !toRemove->right) {
-			toRemove->left->parent = toRemove->parent;
-			if (toRemove->parent->left == toRemove) {
-				toRemove->parent->left = toRemove->left;
-			} else {
-				toRemove->parent->right = toRemove->left;
-			}
-			deinit_node(toRemove);
-		} else if (!toRemove->left && toRemove->right) {
-			toRemove->right->parent = toRemove->parent;
-			if (toRemove->parent->left == toRemove) {
-				toRemove->parent->left = toRemove->right;
-			} else {
-				toRemove->parent->right = toRemove->right;
-			}
-			deinit_node(toRemove);
-		} else {
-			struct node *element = lowest(toRemove->right);
-			assert(element);
-
-			if (element->parent->left == element) {
-				element->parent->left = NULL;
-			} else {
-				element->parent->right = NULL;
-			}
-
-			element->left = toRemove->left;
-			element->right = toRemove->right;
-			element->parent = toRemove->parent;
-
-			toRemove->left->parent = element;
-			toRemove->right->parent = element;
-
-			if(toRemove->parent->left == toRemove) {
-				toRemove->parent->left = element;
-			} else {
-				toRemove->parent->right = element;
-			}
-
-			deinit_node(toRemove);
-		}
+	if (toRemove->left && toRemove->right) {
+		struct node *rightMinimal = lowest(toRemove->right);
+		*toRemove->element = *rightMinimal->element;
+		removeNode(toRemove->right, *rightMinimal->element);
+	} else if (toRemove->left) {
+		replaceNodeInParent(toRemove, toRemove->left);
+		deinit_node(toRemove);
+	} else if (toRemove->right) {
+		replaceNodeInParent(toRemove, toRemove->right);
+		deinit_node(toRemove);
 	} else {
-		if (!toRemove->left && !toRemove->right) {
-			newRoot = NULL;
-			deinit_node(toRemove);
-		} else if (toRemove->left && !toRemove->right) {
-			toRemove->left->parent = NULL;
-			newRoot = toRemove->left;
-			deinit_node(toRemove);
-		} else if (!toRemove->left && toRemove->right) {
-			toRemove->right->parent = NULL;
-			newRoot = toRemove->right;
-			deinit_node(toRemove);
-		} else {
-			struct node *element = lowest(toRemove->right);
-			element->parent = NULL;
-			element->left = toRemove->left;
-			element->right = toRemove->right;
-			if (element == toRemove->right)
-				element->right = NULL;
-			toRemove->left->parent = element;
-
-			if (element->right)
-				toRemove->right->parent = element;
-			deinit_node(toRemove);
-
-			newRoot = element;
-		}
+		replaceNodeInParent(toRemove, NULL);
+		deinit_node(toRemove);
 	}
+
 	return newRoot;
 }
 
@@ -207,16 +157,16 @@ int main(void)
 {
 	struct node *root = init_node(50, NULL);
 	add(root, 25);
-//	add(root, 20);
-//	add(root, 30);
+	add(root, 20);
+	add(root, 30);
 	add(root, 100);
-//	add(root, 75);
-//	add(root, 110);
-//	add(root, 33);
-//	add(root, 108);
+	add(root, 75);
+	add(root, 110);
+	add(root, 33);
+	add(root, 108);
 	printtree(root);
 	printf("---\n");
-	root = removeNode(root, 50);
+	root = removeNode(root, 110);
 	printtree(root);
 	return 0;
 }
