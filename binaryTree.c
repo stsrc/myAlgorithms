@@ -63,42 +63,48 @@ struct node * lowest(struct node *root) {
 	return root;
 }
 
-void replaceNodeInParent(struct node *self, struct node *newValue) {
-	if (self->parent) {
-		if (self == self->parent->left) {
-			self->parent->left = newValue;
-		} else if (self == self->parent->right) {
-			self->parent->right = newValue;
+void replaceInParent(struct node *node, struct node *newElement)
+{
+	if (node->parent) {
+		if (node == node->parent->left) {
+			node->parent->left = newElement;
+		} else if (node == node->parent->right) {
+			node->parent->right = newElement;
 		}
 	}
-	if (newValue) {
-		newValue->parent = self->parent;
+	if (newElement) {
+		newElement->parent = node->parent;
 	}
 }
 
-struct node * removeNode(struct node *root, int value) {
+struct node *removeNode(struct node *root, int value) {
+	if (!root)
+		return NULL;
+
 	struct node *toRemove = search(root, value);
-	struct node *newRoot = root;
-	if (!toRemove) {
-		return newRoot;
-	}
 
 	if (toRemove->left && toRemove->right) {
-		struct node *rightMinimal = lowest(toRemove->right);
-		*toRemove->element = *rightMinimal->element;
-		removeNode(toRemove->right, *rightMinimal->element);
+		struct node *successor = lowest(toRemove->right);
+		*toRemove->element = *successor->element;
+		removeNode(toRemove->right, *successor->element);
 	} else if (toRemove->left) {
-		replaceNodeInParent(toRemove, toRemove->left);
+		replaceInParent(toRemove, toRemove->left);
+		if (toRemove == root)
+			root = toRemove->left;
 		deinit_node(toRemove);
 	} else if (toRemove->right) {
-		replaceNodeInParent(toRemove, toRemove->right);
+		replaceInParent(toRemove, toRemove->right);
+		if (toRemove == root)
+			root = toRemove->right;
 		deinit_node(toRemove);
 	} else {
-		replaceNodeInParent(toRemove, NULL);
+		if (toRemove == root)
+			root = NULL;
+		replaceInParent(toRemove, NULL);
 		deinit_node(toRemove);
 	}
 
-	return newRoot;
+	return root;
 }
 
 int maxdeep(struct node *root) {
@@ -138,6 +144,9 @@ void getElementsAtDeep(struct node *root, int level, int currentLevel, int **out
 
 void printtree(struct node *root)
 {
+	if (!root)
+		return;
+
 	int maxDeep = maxdeep(root);
 	for (int i = 1; i <= maxDeep; i++) {
 		int *output = NULL;
@@ -155,18 +164,17 @@ void printtree(struct node *root)
 
 int main(void)
 {
-	struct node *root = init_node(50, NULL);
-	add(root, 25);
-	add(root, 20);
-	add(root, 30);
-	add(root, 100);
-	add(root, 75);
-	add(root, 110);
-	add(root, 33);
-	add(root, 108);
+	struct node *root = init_node(5, NULL);
+	add(root, 4);
+	add(root, 10);
+	add(root, 12);
+	add(root, 7);
+	add(root, 8);
+	add(root, 9);
+	add(root, 11);
 	printtree(root);
 	printf("---\n");
-	root = removeNode(root, 110);
+	root = removeNode(root, 12);
 	printtree(root);
 	return 0;
 }
