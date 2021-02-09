@@ -1,6 +1,6 @@
 all: quicksort.c binaryTree.c
 	gcc -std=gnu99 -Wall binaryTree.c -o binaryTree
 	gcc -std=gnu99 -Wall quicksort.c -o quickSort
-
+	gcc -std=gnu99 -Wall heapsort.c -o heapsort
 clean:
 	rm quickSort binaryTree
