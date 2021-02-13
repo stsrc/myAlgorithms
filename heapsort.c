@@ -28,19 +28,14 @@ void printArray(struct array *array)
 	printf("\n");
 }
 
-size_t parentOfI(size_t i)
-{
-	return i/2;
-}
-
 size_t leftChild(size_t i)
 {
-	return 2 * i;
+	return 2 * i + 1;
 }
 
 size_t rightChild(size_t i)
 {
-	return 2 * i + 1;
+	return 2 * i + 2;
 }
 
 
@@ -79,11 +74,26 @@ int buildMaxHeap(struct array *array)
 	return 0;
 }
 
+void checkIsSorted(struct array *array, size_t i)
+{
+	if (i >= array->size)
+		return;
+
+	size_t leftchild = leftChild(i);
+	size_t rightchild = rightChild(i);
+
+	if (leftchild < array->size && array->a[leftchild] < array->a[i])
+		abort();
+	if (rightchild < array->size && array->a[rightchild] < array->a[i])
+		abort();
+
+	checkIsSorted(array, leftchild);
+	checkIsSorted(array, rightchild);
+}
+
 void heapsort(struct array *array)
 {
-	printArray(array);
 	buildMaxHeap(array);
-	printArray(array);
 	size_t size = array->size;
 	for (size_t i = array->size - 1; i >= 1; i--) {
 		int temp = array->a[0];
@@ -94,7 +104,6 @@ void heapsort(struct array *array)
 		maxHeapify(array, 0);
 	}
 	array->size = size;
-	printArray(array);
 }
 
 void generateArray(struct array *array)
@@ -110,12 +119,13 @@ int main(void)
 	srand((unsigned) time(&t));
 
 	struct array array;
-	initArray(&array, rand() % 20);
+	initArray(&array, 1 + (rand() % 20));
 
 	generateArray(&array);
-
+	printArray(&array);
 	heapsort(&array);
-
+	printArray(&array);
+	checkIsSorted(&array, 0);
 	deinitArray(&array);
 	return 0;
 }
